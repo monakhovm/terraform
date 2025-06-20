@@ -13,3 +13,25 @@ variable "GKE_NUM_NODES" {
   type        = number
   default     = 2
 }
+variable "GKE_MACHINE_TYPE" {
+  description = "Machine type for GKE nodes"
+  type        = string
+  default     = "g1-small"  
+}
+
+variable "GITHUB_OWNER" {
+  description = "GitHub owner (username or organization)"
+  type        = string
+}
+
+variable "GITHUB_REPO" {
+  description = "GitHub repository name for Flux CD"
+  type        = string
+  default     = "flux-cd"
+}
+
+variable "GITHUB_TOKEN" {
+  description = "GitHub token with permissions to push to the repository"
+  type        = string
+  sensitive   = true
+}

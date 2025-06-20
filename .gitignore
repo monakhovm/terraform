@@ -5,4 +5,7 @@
 *.tfstate
 *.tfstate.*
 *.tfplan
+helmrelease.yaml
+.kubeconfig
+
 
