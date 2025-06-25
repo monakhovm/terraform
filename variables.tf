@@ -35,3 +35,15 @@ variable "GITHUB_TOKEN" {
   type        = string
   sensitive   = true
 }
+
+variable "KMS_KEYRING" {
+  description = "Name KMS keyring"
+  type        = string
+  default     = "sops-flux"
+}
+
+variable "KMS_KEY" {
+  description = "Name KMS key"
+  type        = string
+  default     = "sops-key-flux"
+}

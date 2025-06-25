@@ -47,3 +47,33 @@ module "tls_private_key" {
   source    = "github.com/den-vasyliev/tf-hashicorp-tls-keys"
   algorithm = "RSA"
 }
+
+module "gke-workload-identity" {
+  source = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  use_existing_k8s_sa = true
+  name = "kustomize-controller"
+  namespace = "flux-system"
+  project_id = var.GOOGLE_PROJECT
+  location   = var.GOOGLE_REGION
+  cluster_name = module.google_cluster.name
+  annotate_k8s_sa = true
+  roles = [
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter",
+    "roles/secretmanager.secretAccessor"
+  ]
+}
+
+module "kms" {
+  source = "github.com/monakhovm/terraform-google-kms"
+  project_id = var.GOOGLE_PROJECT
+  keyring = var.KMS_KEYRING
+  location = "global"
+  keys = [var.KMS_KEY]
+  prevent_destroy = false
+}
+
+resource "google_kms_crypto_key_iam_member" "sops_key_encrypter" {
+  crypto_key_id = "projects/${var.GOOGLE_PROJECT}/locations/global/keyRings/${var.KMS_KEYRING}/cryptoKeys/${var.KMS_KEY}"
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:kustomize-controller@${var.GOOGLE_PROJECT}.iam.gserviceaccount.com"
+}
