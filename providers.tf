@@ -4,10 +4,10 @@ terraform {
       source  = "fluxcd/flux"
       version = "~> 1.5.0"
     }
-    # kind = {
-    #   source  = "tehcyx/kind"
-    #   version = "0.8.0"
-    # }
+    kind = {
+      source  = "tehcyx/kind"
+      version = "0.8.0"
+    }
     tls = {
       source  = "hashicorp/tls"
       version = "4.0.4"

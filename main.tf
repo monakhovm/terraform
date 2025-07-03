@@ -1,14 +1,14 @@
-# module "kind_cluster" {
-#   source = "github.com/den-vasyliev/tf-kind-cluster"
-# }
-
-module "google_cluster" {
-  source = "github.com/den-vasyliev/tf-google-gke-cluster"
-  GOOGLE_REGION = var.GOOGLE_REGION
-  GOOGLE_PROJECT = var.GOOGLE_PROJECT
-  GKE_NUM_NODES = var.GKE_NUM_NODES
-  GKE_MACHINE_TYPE = var.GKE_MACHINE_TYPE
+module "kind_cluster" {
+  source = "github.com/den-vasyliev/tf-kind-cluster"
 }
+
+# module "google_cluster" {
+#   source = "github.com/den-vasyliev/tf-google-gke-cluster"
+#   GOOGLE_REGION = var.GOOGLE_REGION
+#   GOOGLE_PROJECT = var.GOOGLE_PROJECT
+#   GKE_NUM_NODES = var.GKE_NUM_NODES
+#   GKE_MACHINE_TYPE = var.GKE_MACHINE_TYPE
+# }
 
 module "github_repository" {
   source = "github.com/den-vasyliev/tf-github-repository"
@@ -20,18 +20,18 @@ module "github_repository" {
 }
 
 resource "local_file" "kubeconfig" {
-  # content = templatefile("${path.module}/kubeconfig-kind.tpl", {
-  #   server_endpoint = module.kind_cluster.config_host,
-  #   cluster_ca      = base64encode(module.kind_cluster.ca),
-  #   client_crt      = base64encode(module.kind_cluster.crt),
-  #   client_key      = base64encode(module.kind_cluster.client_key)
-  # })
-  content = templatefile("${path.module}/kubeconfig-google.tpl", {
-    cluster_endpoint = module.google_cluster.config_host,
-    cluster_ca       = base64encode(module.google_cluster.config_ca),
-    cluster_name     = module.google_cluster.name,
-    access_token     = module.google_cluster.config_token
+  content = templatefile("${path.module}/kubeconfig-kind.tpl", {
+    server_endpoint = module.kind_cluster.endpoint,
+    cluster_ca      = base64encode(module.kind_cluster.ca),
+    client_crt      = base64encode(module.kind_cluster.crt),
+    client_key      = base64encode(module.kind_cluster.client_key)
   })
+  # content = templatefile("${path.module}/kubeconfig-google.tpl", {
+  #   cluster_endpoint = module.google_cluster.config_host,
+  #   cluster_ca       = base64encode(module.google_cluster.config_ca),
+  #   cluster_name     = module.google_cluster.name,
+  #   access_token     = module.google_cluster.config_token
+  # })
   filename = "${path.module}/.kubeconfig"
 }
 
@@ -48,32 +48,32 @@ module "tls_private_key" {
   algorithm = "RSA"
 }
 
-module "gke-workload-identity" {
-  source = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  use_existing_k8s_sa = true
-  name = "kustomize-controller"
-  namespace = "flux-system"
-  project_id = var.GOOGLE_PROJECT
-  location   = var.GOOGLE_REGION
-  cluster_name = module.google_cluster.name
-  annotate_k8s_sa = true
-  roles = [
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter",
-    "roles/secretmanager.secretAccessor"
-  ]
-}
+# module "gke-workload-identity" {
+#   source = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+#   use_existing_k8s_sa = true
+#   name = "kustomize-controller"
+#   namespace = "flux-system"
+#   project_id = var.GOOGLE_PROJECT
+#   location   = var.GOOGLE_REGION
+#   cluster_name = module.google_cluster.name
+#   annotate_k8s_sa = true
+#   roles = [
+#     "roles/cloudkms.cryptoKeyEncrypterDecrypter",
+#     "roles/secretmanager.secretAccessor"
+#   ]
+# }
 
-module "kms" {
-  source = "github.com/monakhovm/terraform-google-kms"
-  project_id = var.GOOGLE_PROJECT
-  keyring = var.KMS_KEYRING
-  location = "global"
-  keys = [var.KMS_KEY]
-  prevent_destroy = false
-}
+# module "kms" {
+#   source = "github.com/monakhovm/terraform-google-kms"
+#   project_id = var.GOOGLE_PROJECT
+#   keyring = var.KMS_KEYRING
+#   location = "global"
+#   keys = [var.KMS_KEY]
+#   prevent_destroy = false
+# }
 
-resource "google_kms_crypto_key_iam_member" "sops_key_encrypter" {
-  crypto_key_id = "projects/${var.GOOGLE_PROJECT}/locations/global/keyRings/${var.KMS_KEYRING}/cryptoKeys/${var.KMS_KEY}"
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:kustomize-controller@${var.GOOGLE_PROJECT}.iam.gserviceaccount.com"
-}
+# resource "google_kms_crypto_key_iam_member" "sops_key_encrypter" {
+#   crypto_key_id = "projects/${var.GOOGLE_PROJECT}/locations/global/keyRings/${var.KMS_KEYRING}/cryptoKeys/${var.KMS_KEY}"
+#   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+#   member        = "serviceAccount:kustomize-controller@${var.GOOGLE_PROJECT}.iam.gserviceaccount.com"
+# }

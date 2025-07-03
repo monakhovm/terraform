@@ -5,7 +5,7 @@
 *.tfstate
 *.tfstate.*
 *.tfplan
-helmrelease.yaml
+*yaml
 .kubeconfig
-
+kind-cluster-config
 
